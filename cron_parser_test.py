@@ -1,6 +1,6 @@
 import pytest
 
-from cron_parser import parseCron
+from cron_parser import parseCron, parseDateTimePart
 
 @pytest.mark.parametrize(
     "inputString, outputString", 
@@ -58,3 +58,25 @@ from cron_parser import parseCron
 )
 def testParseCron(inputString, outputString):
     assert parseCron(inputString) == outputString
+
+
+@pytest.mark.parametrize(
+    "inputString, minValue, maxValue, label, errorMessage", 
+    [
+        ( "70", 0, 59, "minute", "minute value out of range: 70" ), 
+        ( "-6", 0, 59, "minute", "minute part invalid: -6" ), 
+        ( "6-", 0, 59, "minute", "minute part invalid: 6-" ), 
+        ( "30-31", 0, 12, "hour", "hour value out of range: 30" ), 
+        ( "12-31", 0, 12, "hour", "hour value out of range: 31" ), 
+        ( "12-6", 0, 12, "hour", "hour part invalid: 12 greater than 6" ),
+        ( "*/13", 0, 12, "month", "month value out of range: */13" ),
+        ( "15/5", 0, 12, "month", "month value out of range: 15/5" ),
+        ( "5/", 0, 12, "month", "month part invalid: 5/" ),
+        ( "/5", 0, 12, "month", "month part invalid: /5" ),
+    ]
+)
+def testInvalidValues(inputString, minValue, maxValue, label, errorMessage):
+    with pytest.raises(ValueError) as e:
+        parseDateTimePart(inputString, minValue, maxValue, label)
+    
+    assert str(e.value) == errorMessage

@@ -2,8 +2,8 @@
 
 import sys
 
-def parseDateTimePart(dateTimePart, minValue, maxValue):
-    # special case, all possible minues
+def parseDateTimePart(dateTimePart, minValue, maxValue, label):
+    # special case, all possible values
     if dateTimePart == "*":
         return range(minValue,maxValue+1)
 
@@ -12,40 +12,56 @@ def parseDateTimePart(dateTimePart, minValue, maxValue):
     # Divide into the possible sections
     for part in dateTimePart.split(","):
         if "/" in part:
-            # use a regex
             splitValues = part.split("/")
-            assert len(splitValues) == 2
+            
+            if len(splitValues) != 2 or splitValues[0] == "" or splitValues[1] == "":
+                raise ValueError("{} part invalid: {}".format(label, part))
+
             if splitValues[0] == "*":
                 splitValues[0] = minValue
 
             increment = int(splitValues[1])
             total = int(splitValues[0])
-            
+
+            if int(increment) > maxValue or int(increment) < minValue:
+                raise ValueError("{} value out of range: {}".format(label, part))
+            if int(total) > maxValue or int(total) < minValue:
+                raise ValueError("{} value out of range: {}".format(label, part))
+
             while total <= maxValue:
                 minuteList.append(total)
                 total += increment
 
-            
         elif "-" in part:
             splitValues = part.split("-")
-            # TODO: Add validation, value 2 > value 1, values < 60 etc
+            if len(splitValues) != 2 or splitValues[0] == "" or splitValues[1] == "":
+                raise ValueError("{} part invalid: {}".format(label, part))
+
+            firstValue = int(splitValues[0])
+            secondValue = int(splitValues[1])
+            if firstValue < minValue or firstValue > maxValue:
+                raise ValueError("{} value out of range: {}".format(label, firstValue))
+            if secondValue < minValue or secondValue > maxValue:
+                raise ValueError("{} value out of range: {}".format(label, secondValue))
+            if firstValue > secondValue:
+                raise ValueError("{} part invalid: {} greater than {}".format(label, firstValue, secondValue))
 
             minuteList.extend(range(int(splitValues[0]), int(splitValues[1])+1))
         else:
-            # TODO: Validate < 60
+            if int(part) > maxValue or int(part) < minValue:
+                raise ValueError("{} value out of range: {}".format(label, part))
             minuteList.append(part)
-
 
     return minuteList
 
 def parseCron(inputString):
     inputParts = inputString.split(" ")
     
-    minute = parseDateTimePart(inputParts[0], 0, 59)
-    hour = parseDateTimePart(inputParts[1], 0, 23)
-    dayOfMonth = parseDateTimePart(inputParts[2], 1, 31)
-    month = parseDateTimePart(inputParts[3], 1, 12)
-    dayOfWeek = parseDateTimePart(inputParts[4], 0, 6)
+    minute = parseDateTimePart(inputParts[0], 0, 59, "minute")
+    hour = parseDateTimePart(inputParts[1], 0, 23, "hour")
+    dayOfMonth = parseDateTimePart(inputParts[2], 1, 31, "day of month")
+    month = parseDateTimePart(inputParts[3], 1, 12, "month")
+    dayOfWeek = parseDateTimePart(inputParts[4], 0, 6, "day of week")
     command = " ".join(inputParts[5:])
 
     returnLines = [
@@ -60,10 +76,14 @@ def parseCron(inputString):
     return returnLines
 
 if __name__ == "__main__":
-    if(len(sys.argv) == 1):
-        print()
+    if(len(sys.argv) != 2):
+        print("Invalid arguments")
         exit
     else:
-        output = parseCron(sys.argv[1])
-        for line in output:
-            print(line)
+        try:
+            output = parseCron(sys.argv[1])
+            for line in output:
+                print(line)
+        except ValueError as e:
+            print("Error: {}".format(str(e)))
+            
