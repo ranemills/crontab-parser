@@ -2,27 +2,26 @@
 
 import sys
 
-def parseMinutes(minuteString):
+def parseDateTimePart(dateTimePart, minValue, maxValue):
     # special case, all possible minues
-    if minuteString == "*":
-        return range(0,60)
+    if dateTimePart == "*":
+        return range(minValue,maxValue+1)
 
     minuteList = []
 
     # Divide into the possible sections
-    minuteParts = minuteString.split(",")
-    for part in minuteParts:
+    for part in dateTimePart.split(","):
         if "/" in part:
             # use a regex
             splitValues = part.split("/")
             assert len(splitValues) == 2
             if splitValues[0] == "*":
-                splitValues[0] = 0
+                splitValues[0] = minValue
 
             increment = int(splitValues[1])
             total = int(splitValues[0])
             
-            while total < 60:
+            while total <= maxValue:
                 minuteList.append(total)
                 total += increment
 
@@ -33,6 +32,7 @@ def parseMinutes(minuteString):
 
             minuteList.extend(range(int(splitValues[0]), int(splitValues[1])+1))
         else:
+            # TODO: Validate < 60
             minuteList.append(part)
 
 
@@ -41,23 +41,12 @@ def parseMinutes(minuteString):
 def parseCron(inputString):
     inputParts = inputString.split(" ")
     
-    # Whilst developing, keep this to shortcut if any input gets a bit weird
-    # When the command starts to have arguments, we'll change this
-    assert len(inputParts) == 6
-
-
-    minute = [0, 15, 30, 45]
-    hour = [0]
-    dayOfMonth = [1, 15]
-    month = [1,2,3,4,5,6,7,8,9,10,11,12]
-    dayOfWeek = [1,2,3,4,5]
-    command = "/usr/bin/find"
-
-    minute = parseMinutes(inputParts[0])
-    # hour = parseMinutes(inputParts[1])
-    # dayOfMonth = parseMinutes(inputParts[2])
-    # month = parseMinutes(inputParts[3])
-    # command = parseMinutes(inputParts[4])
+    minute = parseDateTimePart(inputParts[0], 0, 59)
+    hour = parseDateTimePart(inputParts[1], 0, 23)
+    dayOfMonth = parseDateTimePart(inputParts[2], 1, 31)
+    month = parseDateTimePart(inputParts[3], 1, 12)
+    dayOfWeek = parseDateTimePart(inputParts[4], 0, 6)
+    command = " ".join(inputParts[5:])
 
     returnLines = [
         "minute        {}".format(" ".join([str(i) for i in minute])),
