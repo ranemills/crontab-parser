@@ -2,6 +2,7 @@
 
 import sys
 
+
 def parseDateTimePart(dateTimePart, minValue, maxValue, label):
     # special case, all possible values
     if dateTimePart == "*":
@@ -9,14 +10,16 @@ def parseDateTimePart(dateTimePart, minValue, maxValue, label):
 
     minuteList = []
 
-    # Divide into the possible sections
+    # Divide expression into its components
     for part in dateTimePart.split(","):
         if "/" in part:
+            # Interval reccurrence
             splitValues = part.split("/")
             
             if len(splitValues) != 2 or splitValues[0] == "" or splitValues[1] == "":
                 raise ValueError("{} part invalid: {}".format(label, part))
 
+            # Interpret * as starting at the minimum value
             if splitValues[0] == "*":
                 splitValues[0] = minValue
 
@@ -33,6 +36,7 @@ def parseDateTimePart(dateTimePart, minValue, maxValue, label):
                 total += increment
 
         elif "-" in part:
+            # Range
             splitValues = part.split("-")
             if len(splitValues) != 2 or splitValues[0] == "" or splitValues[1] == "":
                 raise ValueError("{} part invalid: {}".format(label, part))
@@ -48,6 +52,7 @@ def parseDateTimePart(dateTimePart, minValue, maxValue, label):
 
             minuteList.extend(range(int(splitValues[0]), int(splitValues[1])+1))
         else:
+            # Absolute value
             if int(part) > maxValue or int(part) < minValue:
                 raise ValueError("{} value out of range: {}".format(label, part))
             minuteList.append(part)
