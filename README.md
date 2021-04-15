@@ -21,6 +21,8 @@ day of week   0 1 2 3 4 5 6
 command       /usr/bin/find -name test
 ```
 
+This implementation does not support the characters: L, W, #, ?
+
 ## Development
 
 The below development tests are primarily for the purpose of running tests. To simply run the tool, see Usage above.

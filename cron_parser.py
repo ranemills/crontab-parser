@@ -52,12 +52,13 @@ def parseDateTimePart(dateTimePart, minValue, maxValue, label):
 
             minuteList.extend(range(int(splitValues[0]), int(splitValues[1])+1))
         else:
+            partInt = int(part)
             # Absolute value
-            if int(part) > maxValue or int(part) < minValue:
+            if partInt > maxValue or partInt < minValue:
                 raise ValueError("{} value out of range: {}".format(label, part))
-            minuteList.append(part)
+            minuteList.append(partInt)
 
-    return minuteList
+    return sorted(list(set(minuteList)))
 
 def parseCron(inputString):
     inputParts = inputString.split(" ")

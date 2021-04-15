@@ -5,6 +5,16 @@ from cron_parser import parseCron, parseDateTimePart
 @pytest.mark.parametrize(
     "inputString, outputString", 
     [(
+        "5,4,3,2,1 0 10/5,15-20 * * /usr/bin/find -name test",
+        [
+            "minute        1 2 3 4 5",
+            "hour          0",
+            "day of month  10 15 16 17 18 19 20 25 30",
+            "month         1 2 3 4 5 6 7 8 9 10 11 12",
+            "day of week   0 1 2 3 4 5 6",
+            "command       /usr/bin/find -name test"
+        ]
+    ),(
         "0 0 10/5 * * /usr/bin/find -name test",
         [
             "minute        0",
